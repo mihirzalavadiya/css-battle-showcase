@@ -3,6 +3,7 @@ const subscribers = new Set();
 
 // Notify all subscribers of data changes
 const notifySubscribers = (battles) => {
+  console.log('Notifying subscribers with battles:', battles);
   subscribers.forEach((callback) => callback(battles));
 };
 
@@ -10,6 +11,7 @@ const notifySubscribers = (battles) => {
 const getBattlesFromStorage = () => {
   try {
     const battles = localStorage.getItem('css-battles');
+    console.log('Retrieved battles from storage:', battles);
     return battles ? JSON.parse(battles) : [];
   } catch (error) {
     console.error('Error reading from localStorage:', error);
@@ -20,6 +22,7 @@ const getBattlesFromStorage = () => {
 // Helper to save battles to localStorage
 const saveBattlesToStorage = (battles) => {
   try {
+    console.log('Saving battles to storage:', battles);
     localStorage.setItem('css-battles', JSON.stringify(battles));
   } catch (error) {
     console.error('Error saving to localStorage:', error);

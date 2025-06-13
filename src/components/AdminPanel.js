@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faTimes, faPlus, faSave, faSpinner, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import {
+  faEdit,
+  faTrash,
+  faTimes,
+  faPlus,
+  faSave,
+  faSpinner,
+  faSignOutAlt,
+} from '@fortawesome/free-solid-svg-icons';
 import { battleService } from '../services/battleService';
 import { useAuth } from '../App';
 
@@ -14,7 +22,7 @@ function AdminPanel() {
     title: '',
     description: '',
     code: '',
-    image: ''
+    image: '',
   });
   const [editingId, setEditingId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -32,7 +40,7 @@ function AdminPanel() {
     loadBattles();
 
     // Subscribe to updates
-    const unsubscribe = battleService.subscribe(updatedBattles => {
+    const unsubscribe = battleService.subscribe((updatedBattles) => {
       setBattles(updatedBattles);
     });
 
@@ -49,10 +57,12 @@ function AdminPanel() {
     setSubmitting(true);
 
     try {
+      console.log('Submitting form data:', formData);
       if (editingId) {
         await battleService.updateBattle(editingId, formData);
       } else {
-        await battleService.addBattle(formData);
+        const newBattle = await battleService.addBattle(formData);
+        console.log('New battle added:', newBattle);
       }
 
       // Reset form
@@ -60,7 +70,7 @@ function AdminPanel() {
         title: '',
         description: '',
         code: '',
-        image: ''
+        image: '',
       });
       setEditingId(null);
     } catch (error) {
@@ -73,9 +83,9 @@ function AdminPanel() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -84,9 +94,9 @@ function AdminPanel() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          image: reader.result
+          image: reader.result,
         }));
       };
       reader.readAsDataURL(file);
@@ -121,11 +131,7 @@ function AdminPanel() {
     <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem' }}>
       <div className="admin-header">
         <h1>Admin Panel</h1>
-        <div 
-          className="icon-button"
-          onClick={handleLogout}
-          title="Logout"
-        >
+        <div className="icon-button" onClick={handleLogout} title="Logout">
           <FontAwesomeIcon icon={faSignOutAlt} />
         </div>
       </div>
@@ -182,28 +188,23 @@ function AdminPanel() {
               onChange={handleImageChange}
               disabled={submitting}
             />
-            {formData.image && (
-              <img
-                src={formData.image}
-                alt="Preview"
-              />
-            )}
+            {formData.image && <img src={formData.image} alt="Preview" />}
           </div>
 
           <div className="form-actions">
-            <div 
+            <div
               className={`icon-button primary ${submitting ? 'disabled' : ''}`}
               onClick={!submitting ? handleSubmit : undefined}
               title={editingId ? 'Update Battle' : 'Add Battle'}
             >
-              <FontAwesomeIcon 
-                icon={submitting ? faSpinner : (editingId ? faSave : faPlus)} 
+              <FontAwesomeIcon
+                icon={submitting ? faSpinner : editingId ? faSave : faPlus}
                 className={submitting ? 'fa-spin' : ''}
               />
             </div>
 
             {editingId && !submitting && (
-              <div 
+              <div
                 className="icon-button"
                 onClick={() => {
                   setEditingId(null);
@@ -211,7 +212,7 @@ function AdminPanel() {
                     title: '',
                     description: '',
                     code: '',
-                    image: ''
+                    image: '',
                   });
                 }}
                 title="Cancel Edit"
@@ -223,23 +224,25 @@ function AdminPanel() {
         </form>
       </div>
 
-      <h2 style={{ margin: '2rem 0 1rem', color: 'var(--text-color)' }}>Existing Battles</h2>
+      <h2 style={{ margin: '2rem 0 1rem', color: 'var(--text-color)' }}>
+        Existing Battles
+      </h2>
       <div className="battle-grid">
-        {battles.map(battle => (
+        {battles.map((battle) => (
           <div key={battle.id} className="battle-card">
             <img src={battle.image} alt={battle.title} />
             <div className="battle-card-content">
               <h3>{battle.title}</h3>
               {battle.description && <p>{battle.description}</p>}
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <div 
+                <div
                   className="icon-button"
                   onClick={() => handleEdit(battle)}
                   title="Edit Battle"
                 >
                   <FontAwesomeIcon icon={faEdit} />
                 </div>
-                <div 
+                <div
                   className="icon-button"
                   onClick={() => handleDelete(battle.id)}
                   title="Delete Battle"
@@ -255,4 +258,4 @@ function AdminPanel() {
   );
 }
 
-export default AdminPanel; 
+export default AdminPanel;
