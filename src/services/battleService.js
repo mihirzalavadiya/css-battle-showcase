@@ -1,3 +1,5 @@
+const API_URL = 'http://localhost:3001/api';
+
 // Event bus for real-time updates
 const subscribers = new Set();
 
@@ -5,29 +7,6 @@ const subscribers = new Set();
 const notifySubscribers = (battles) => {
   console.log('Notifying subscribers with battles:', battles);
   subscribers.forEach((callback) => callback(battles));
-};
-
-// Helper to get battles from localStorage
-const getBattlesFromStorage = () => {
-  try {
-    const battles = localStorage.getItem('css-battles');
-    console.log('Retrieved battles from storage:', battles);
-    return battles ? JSON.parse(battles) : [];
-  } catch (error) {
-    console.error('Error reading from localStorage:', error);
-    return [];
-  }
-};
-
-// Helper to save battles to localStorage
-const saveBattlesToStorage = (battles) => {
-  try {
-    console.log('Saving battles to storage:', battles);
-    localStorage.setItem('css-battles', JSON.stringify(battles));
-  } catch (error) {
-    console.error('Error saving to localStorage:', error);
-    throw new Error('Failed to save battle data');
-  }
 };
 
 export const battleService = {
@@ -39,67 +18,76 @@ export const battleService = {
 
   // Get all battles
   async getBattles() {
-    return getBattlesFromStorage();
+    const response = await fetch(`${API_URL}/battles`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch battles');
+    }
+    const battles = await response.json();
+    notifySubscribers(battles);
+    return battles;
   },
 
   // Add a new battle
   async addBattle(battleData) {
-    const battles = getBattlesFromStorage();
-    const newBattle = {
-      id: crypto.randomUUID(),
-      ...battleData,
-      createdAt: new Date().toISOString(),
-    };
+    const response = await fetch(`${API_URL}/battles`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(battleData),
+    });
 
-    battles.push(newBattle);
-    saveBattlesToStorage(battles);
+    if (!response.ok) {
+      throw new Error('Failed to add battle');
+    }
+
+    const newBattle = await response.json();
+    const battles = await this.getBattles();
     notifySubscribers(battles);
     return newBattle;
   },
 
   // Update an existing battle
   async updateBattle(id, battleData) {
-    const battles = getBattlesFromStorage();
-    const index = battles.findIndex((b) => b.id === id);
+    const response = await fetch(`${API_URL}/battles/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(battleData),
+    });
 
-    if (index === -1) {
-      throw new Error('Battle not found');
+    if (!response.ok) {
+      throw new Error('Failed to update battle');
     }
 
-    battles[index] = {
-      ...battles[index],
-      ...battleData,
-      updatedAt: new Date().toISOString(),
-    };
-
-    saveBattlesToStorage(battles);
+    const updatedBattle = await response.json();
+    const battles = await this.getBattles();
     notifySubscribers(battles);
-    return battles[index];
+    return updatedBattle;
   },
 
   // Delete a battle
   async deleteBattle(id) {
-    const battles = getBattlesFromStorage();
-    const filteredBattles = battles.filter((b) => b.id !== id);
+    const response = await fetch(`${API_URL}/battles/${id}`, {
+      method: 'DELETE',
+    });
 
-    if (filteredBattles.length === battles.length) {
-      throw new Error('Battle not found');
+    if (!response.ok) {
+      throw new Error('Failed to delete battle');
     }
 
-    saveBattlesToStorage(filteredBattles);
-    notifySubscribers(filteredBattles);
+    const battles = await this.getBattles();
+    notifySubscribers(battles);
     return true;
   },
 
   // Get a single battle by ID
   async getBattleById(id) {
-    const battles = getBattlesFromStorage();
-    const battle = battles.find((b) => b.id === id);
-
-    if (!battle) {
+    const response = await fetch(`${API_URL}/battles/${id}`);
+    if (!response.ok) {
       throw new Error('Battle not found');
     }
-
-    return battle;
+    return response.json();
   },
 };
