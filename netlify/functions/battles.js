@@ -31,19 +31,13 @@ const uploadImage = async (imageData) => {
 
 exports.handler = async (event, context) => {
   const { httpMethod, path, body } = event;
-  const pathParts = path.split('/').filter(Boolean);
-  // Find 'battles' in the path, and get the id if present
-  const battlesIndex = pathParts.findIndex((p) => p === 'battles');
-  const resource = pathParts[battlesIndex];
-  const id = pathParts[battlesIndex + 1];
 
-  // Only handle battles resource
-  if (resource !== 'battles') {
-    return {
-      statusCode: 404,
-      body: JSON.stringify({ error: 'Not found' }),
-    };
-  }
+  // Simplified path parsing - just get the ID if it exists
+  const pathParts = path.split('/').filter(Boolean);
+  const id =
+    pathParts[pathParts.length - 1] === 'battles'
+      ? null
+      : pathParts[pathParts.length - 1];
 
   try {
     switch (httpMethod) {
@@ -67,6 +61,8 @@ exports.handler = async (event, context) => {
         if (!id) {
           // POST new battle
           const data = JSON.parse(body);
+          console.log('Creating new battle with data:', data);
+
           // Optionally handle image upload here if needed
           const response = await axios.post(`${JSON_SERVER_URL}/battles`, data);
           return {
@@ -82,6 +78,8 @@ exports.handler = async (event, context) => {
       case 'PUT':
         if (id) {
           const data = JSON.parse(body);
+          console.log(`Updating battle ${id} with data:`, data);
+
           const response = await axios.put(
             `${JSON_SERVER_URL}/battles/${id}`,
             data
@@ -98,6 +96,7 @@ exports.handler = async (event, context) => {
         }
       case 'DELETE':
         if (id) {
+          console.log(`Deleting battle ${id}`);
           await axios.delete(`${JSON_SERVER_URL}/battles/${id}`);
           return {
             statusCode: 204,
@@ -116,9 +115,17 @@ exports.handler = async (event, context) => {
         };
     }
   } catch (error) {
+    console.error('API Error:', error);
+    const errorMessage =
+      error.response?.data?.message || error.message || 'Internal server error';
+    const statusCode = error.response?.status || 500;
+
     return {
-      statusCode: 500,
-      body: JSON.stringify({ error: error.message }),
+      statusCode,
+      body: JSON.stringify({
+        error: errorMessage,
+        details: error.response?.data || null,
+      }),
     };
   }
 };
