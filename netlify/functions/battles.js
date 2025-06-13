@@ -32,8 +32,10 @@ const uploadImage = async (imageData) => {
 exports.handler = async (event, context) => {
   const { httpMethod, path, body } = event;
   const pathParts = path.split('/').filter(Boolean);
-  const resource = pathParts[1]; // 'battles'
-  const id = pathParts[2]; // battle ID if present
+  // Find 'battles' in the path, and get the id if present
+  const battlesIndex = pathParts.findIndex((p) => p === 'battles');
+  const resource = pathParts[battlesIndex];
+  const id = pathParts[battlesIndex + 1];
 
   // Only handle battles resource
   if (resource !== 'battles') {
