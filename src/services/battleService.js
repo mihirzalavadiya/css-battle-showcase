@@ -30,14 +30,14 @@ export const battleService = {
 
   // Get all battles
   async getBattles() {
-    const response = await fetch(`${API_URL}/battles`);
+    const response = await fetch(`${API_URL}`);
     const battles = await handleResponse(response);
     return battles || [];
   },
 
   // Add a new battle
   async addBattle(battleData) {
-    const response = await fetch(`${API_URL}/battles`, {
+    const response = await fetch(`${API_URL}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ export const battleService = {
 
   // Update an existing battle
   async updateBattle(id, battleData) {
-    const response = await fetch(`${API_URL}/battles/${id}`, {
+    const response = await fetch(`${API_URL}/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -69,7 +69,7 @@ export const battleService = {
 
   // Delete a battle
   async deleteBattle(id) {
-    const response = await fetch(`${API_URL}/battles/${id}`, {
+    const response = await fetch(`${API_URL}/${id}`, {
       method: 'DELETE',
     });
 
@@ -81,7 +81,7 @@ export const battleService = {
 
   // Get a single battle by ID
   async getBattleById(id) {
-    const response = await fetch(`${API_URL}/battles/${id}`);
+    const response = await fetch(`${API_URL}/${id}`);
     return handleResponse(response);
   },
 };
