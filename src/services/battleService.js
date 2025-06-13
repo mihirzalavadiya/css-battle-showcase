@@ -37,6 +37,7 @@ export const battleService = {
 
   // Add a new battle
   async addBattle(battleData) {
+    console.log(battleData);
     const response = await fetch(`${API_URL}`, {
       method: 'POST',
       headers: {
