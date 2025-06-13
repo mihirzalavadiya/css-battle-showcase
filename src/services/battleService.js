@@ -1,8 +1,8 @@
 // API base URL
 const API_URL =
   process.env.NODE_ENV === 'production'
-    ? '/.netlify/functions/battles'
-    : 'http://localhost:3001/api';
+    ? '/api/battles'
+    : 'http://localhost:3001/api/battles';
 
 // Event bus for real-time updates
 const subscribers = new Set();
