@@ -49,76 +49,66 @@ exports.handler = async (event, context) => {
     switch (httpMethod) {
       case 'GET':
         if (id) {
+          // GET one
           const response = await axios.get(`${JSON_SERVER_URL}/battles/${id}`);
           return {
             statusCode: 200,
             body: JSON.stringify(response.data),
           };
+        } else {
+          // GET all
+          const response = await axios.get(`${JSON_SERVER_URL}/battles`);
+          return {
+            statusCode: 200,
+            body: JSON.stringify(response.data),
+          };
         }
-        const response = await axios.get(`${JSON_SERVER_URL}/battles`);
-        return {
-          statusCode: 200,
-          body: JSON.stringify(response.data),
-        };
-
       case 'POST':
-        const battleData = JSON.parse(body);
-        // Upload image if present
-        if (battleData.image) {
-          battleData.image = await uploadImage(battleData.image);
+        if (!id) {
+          // POST new battle
+          const data = JSON.parse(body);
+          // Optionally handle image upload here if needed
+          const response = await axios.post(`${JSON_SERVER_URL}/battles`, data);
+          return {
+            statusCode: 201,
+            body: JSON.stringify(response.data),
+          };
+        } else {
+          return {
+            statusCode: 400,
+            body: JSON.stringify({ error: 'POST to /battles/:id not allowed' }),
+          };
         }
-
-        const newBattle = {
-          ...battleData,
-          id: uuidv4(),
-          createdAt: new Date().toISOString(),
-        };
-
-        await axios.post(`${JSON_SERVER_URL}/battles`, newBattle);
-        return {
-          statusCode: 201,
-          body: JSON.stringify(newBattle),
-        };
-
       case 'PUT':
-        if (!id) {
+        if (id) {
+          const data = JSON.parse(body);
+          const response = await axios.put(
+            `${JSON_SERVER_URL}/battles/${id}`,
+            data
+          );
+          return {
+            statusCode: 200,
+            body: JSON.stringify(response.data),
+          };
+        } else {
           return {
             statusCode: 400,
-            body: JSON.stringify({ error: 'ID is required' }),
+            body: JSON.stringify({ error: 'PUT requires an id' }),
           };
         }
-
-        const updateData = JSON.parse(body);
-        // Upload new image if present
-        if (updateData.image) {
-          updateData.image = await uploadImage(updateData.image);
-        }
-
-        const updatedBattle = {
-          ...updateData,
-          updatedAt: new Date().toISOString(),
-        };
-
-        await axios.put(`${JSON_SERVER_URL}/battles/${id}`, updatedBattle);
-        return {
-          statusCode: 200,
-          body: JSON.stringify(updatedBattle),
-        };
-
       case 'DELETE':
-        if (!id) {
+        if (id) {
+          await axios.delete(`${JSON_SERVER_URL}/battles/${id}`);
+          return {
+            statusCode: 204,
+            body: '',
+          };
+        } else {
           return {
             statusCode: 400,
-            body: JSON.stringify({ error: 'ID is required' }),
+            body: JSON.stringify({ error: 'DELETE requires an id' }),
           };
         }
-
-        await axios.delete(`${JSON_SERVER_URL}/battles/${id}`);
-        return {
-          statusCode: 204,
-          body: '',
-        };
-
       default:
         return {
           statusCode: 405,
@@ -126,9 +116,8 @@ exports.handler = async (event, context) => {
         };
     }
   } catch (error) {
-    console.error('Error:', error);
     return {
-      statusCode: error.response?.status || 500,
+      statusCode: 500,
       body: JSON.stringify({ error: error.message }),
     };
   }
