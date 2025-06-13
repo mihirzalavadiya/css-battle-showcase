@@ -66,7 +66,6 @@ app.delete('/api/battles/:id', (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 app.listen(PORT, () => {
   console.log(`Mock API server running on port ${PORT}`);
-}); 
+});

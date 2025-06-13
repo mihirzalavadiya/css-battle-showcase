@@ -1,12 +1,15 @@
 // API base URL
-const API_URL = 'http://localhost:3001/api';
+const API_URL =
+  process.env.NODE_ENV === 'production'
+    ? '/.netlify/functions/battles'
+    : 'http://localhost:3001/api';
 
 // Event bus for real-time updates
 const subscribers = new Set();
 
 // Notify all subscribers of data changes
 const notifySubscribers = (battles) => {
-  subscribers.forEach(callback => callback(battles));
+  subscribers.forEach((callback) => callback(battles));
 };
 
 // Helper to handle API responses
@@ -41,7 +44,7 @@ export const battleService = {
       },
       body: JSON.stringify(battleData),
     });
-    
+
     const newBattle = await handleResponse(response);
     const battles = await this.getBattles();
     notifySubscribers(battles);
@@ -57,7 +60,7 @@ export const battleService = {
       },
       body: JSON.stringify(battleData),
     });
-    
+
     const updatedBattle = await handleResponse(response);
     const battles = await this.getBattles();
     notifySubscribers(battles);
@@ -69,7 +72,7 @@ export const battleService = {
     const response = await fetch(`${API_URL}/battles/${id}`, {
       method: 'DELETE',
     });
-    
+
     await handleResponse(response);
     const battles = await this.getBattles();
     notifySubscribers(battles);
@@ -80,5 +83,5 @@ export const battleService = {
   async getBattleById(id) {
     const response = await fetch(`${API_URL}/battles/${id}`);
     return handleResponse(response);
-  }
-}; 
+  },
+};
